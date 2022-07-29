@@ -1,50 +1,58 @@
-EXE = pa3
-EXETEST = pa3test
+CXX ?= clang++
+CXXFLAGS ?= -std=c++1y -c -g -O0 -Wall -Wextra -pedantic 
+LD = $(CXX)
+LDFLAGS ?= -std=c++1y -lpthread -lm
 
-OBJS_EXE = RGBAPixel.o lodepng.o PNG.o main.o qtvar.o qtcount.o quadtree.o stats.o
-OBJS_EXETEST = RGBAPixel.o lodepng.o PNG.o testComp.o qtvar.o qtcount.o quadtree.o stats.o
+EXE = pngquadtree
+EXECOMP = pngquadtree-comp
+EXETEST = pngquadtree-test
 
-CXX = clang++
-CXXFLAGS = -std=c++1y -stdlib=libc++ -c -g -O0 -Wall -Wextra -pedantic 
-LD = clang++
-#LDFLAGS = -std=c++1y -stdlib=libc++ -lc++abi -lpthread -lm
-LDFLAGS = -std=c++1y -stdlib=libc++ -lpthread -lm 
+OBJS = src/RGBAPixel.o src/lodepng.o src/PNG.o src/qtvar.o src/qtcount.o src/quadtree.o src/stats.o
+OBJS_EXE = src/main.o
+OBJS_COMP = src/compare.o
+OBJS_EXETEST = src/test.o
 
-all : pa3 pa3test
+all : $(EXE) $(EXECOMP) $(EXETEST)
 
-$(EXE) : $(OBJS_EXE)
-	$(LD) $(OBJS_EXE) $(LDFLAGS) -o $(EXE)
+$(EXE) : $(OBJS) $(OBJS_EXE)
+	$(LD) $^ $(LDFLAGS) -o $@
 
-$(EXETEST) : $(OBJS_EXETEST)
-	$(LD) $(OBJS_EXETEST) $(LDFLAGS) -o $(EXETEST)
+$(EXECOMP) : $(OBJS) $(OBJS_COMP)
+	$(LD) $^ $(LDFLAGS) -o $@
+
+$(EXETEST) : $(OBJS) $(OBJS_EXETEST)
+	$(LD) $^ $(LDFLAGS) -o $@
 
 #object files
-RGBAPixel.o : cs221util/RGBAPixel.cpp cs221util/RGBAPixel.h
-	$(CXX) $(CXXFLAGS) cs221util/RGBAPixel.cpp -o $@
+src/RGBAPixel.o : src/cs221util/RGBAPixel.cpp src/cs221util/RGBAPixel.h
+	$(CXX) $(CXXFLAGS) $< -o $@
 
-PNG.o : cs221util/PNG.cpp cs221util/PNG.h cs221util/RGBAPixel.h cs221util/lodepng/lodepng.h
-	$(CXX) $(CXXFLAGS) cs221util/PNG.cpp -o $@
+src/PNG.o : src/cs221util/PNG.cpp src/cs221util/PNG.h src/cs221util/RGBAPixel.h src/cs221util/lodepng/lodepng.h
+	$(CXX) $(CXXFLAGS) $< -o $@
 
-lodepng.o : cs221util/lodepng/lodepng.cpp cs221util/lodepng/lodepng.h
-	$(CXX) $(CXXFLAGS) cs221util/lodepng/lodepng.cpp -o $@
+src/lodepng.o : src/cs221util/lodepng/lodepng.cpp src/cs221util/lodepng/lodepng.h
+	$(CXX) $(CXXFLAGS) $< -o $@
 
-stats.o : stats.h stats.cpp cs221util/RGBAPixel.h cs221util/PNG.h
-	$(CXX) $(CXXFLAGS) stats.cpp -o $@
+src/stats.o : src/stats.cpp src/stats.h src/cs221util/RGBAPixel.h src/cs221util/PNG.h
+	$(CXX) $(CXXFLAGS) $< -o $@
 
-quadtree.o : quadtree.h quadtree.cpp stats.h cs221util/PNG.h cs221util/RGBAPixel.h
-	$(CXX) $(CXXFLAGS) quadtree.cpp -o $@
+src/quadtree.o : src/quadtree.cpp src/quadtree.h src/stats.h src/cs221util/PNG.h src/cs221util/RGBAPixel.h
+	$(CXX) $(CXXFLAGS) $< -o $@
 
-qtvar.o : qtvar.h qtvar.cpp quadtree.h stats.h cs221util/PNG.h cs221util/RGBAPixel.h
-	$(CXX) $(CXXFLAGS) qtvar.cpp -o $@
+src/qtvar.o : src/qtvar.cpp src/qtvar.h src/quadtree.h src/stats.h src/cs221util/PNG.h src/cs221util/RGBAPixel.h
+	$(CXX) $(CXXFLAGS) $< -o $@
 
-qtcount.o : qtcount.h qtcount.cpp quadtree.h stats.h cs221util/PNG.h cs221util/RGBAPixel.h
-	$(CXX) $(CXXFLAGS) qtcount.cpp -o $@
+src/qtcount.o : src/qtcount.cpp src/qtcount.h src/quadtree.h src/stats.h src/cs221util/PNG.h src/cs221util/RGBAPixel.h
+	$(CXX) $(CXXFLAGS) $< -o $@
 
-main.o : main.cpp cs221util/PNG.h cs221util/RGBAPixel.h quadtree.h qtcount.h qtvar.h
-	$(CXX) $(CXXFLAGS) main.cpp -o main.o
+src/main.o : src/main.cpp src/cs221util/PNG.h src/cs221util/RGBAPixel.h src/quadtree.h src/qtcount.h src/qtvar.h
+	$(CXX) $(CXXFLAGS) $< -o $@
 
-testComp.o : testComp.cpp cs221util/PNG.h cs221util/RGBAPixel.h quadtree.h qtcount.h qtvar.h
-	$(CXX) $(CXXFLAGS) testComp.cpp -o testComp.o
+src/compare.o : src/compare.cpp src/cs221util/PNG.h src/cs221util/RGBAPixel.h src/quadtree.h src/qtcount.h src/qtvar.h
+	$(CXX) $(CXXFLAGS) $< -o $@
+
+src/test.o : src/test.cpp src/cs221util/PNG.h src/cs221util/RGBAPixel.h src/quadtree.h src/qtcount.h src/qtvar.h
+	$(CXX) $(CXXFLAGS) $< -o $@
 
 clean :
-	-rm -f *.o $(EXE) $(EXETEST)
+	-rm -f $(OBJS) $(OBJS_EXE) $(OBJS_COMP) $(OBJS_EXETEST) $(EXE) $(EXECOMP) $(EXETEST)
